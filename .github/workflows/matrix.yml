@@ -1,0 +1,44 @@
+# ===========================================
+# Matrix Build - Test on multiple Node versions
+# ===========================================
+# This workflow tests your code on multiple Node.js versions
+# simultaneously using a matrix strategy
+
+name: Matrix Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-matrix:
+    name: Node ${{ matrix.node-version }} on ${{ matrix.os }}
+
+    # MATRIX STRATEGY: Run the same job with different configurations
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]           # Test on 3 Node versions
+        os: [ubuntu-latest, windows-latest]  # Test on 2 OS types
+      fail-fast: false                       # Don't cancel other jobs if one fails
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Report success
+        run: echo "Tests passed on Node ${{ matrix.node-version }} / ${{ matrix.os }}"

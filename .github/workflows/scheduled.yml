@@ -1,0 +1,125 @@
+# ===========================================
+# Scheduled Workflows - Cron jobs in GitHub
+# ===========================================
+# This workflow runs on a schedule (like cron jobs)
+# Great for: backups, reports, dependency updates, health checks
+
+name: Scheduled Tasks
+
+on:
+  # SCHEDULE: Uses cron syntax
+  # ┌───────────── minute (0 - 59)
+  # │ ┌───────────── hour (0 - 23)
+  # │ │ ┌───────────── day of month (1 - 31)
+  # │ │ │ ┌───────────── month (1 - 12)
+  # │ │ │ │ ┌───────────── day of week (0 - 6) (Sunday = 0)
+  # │ │ │ │ │
+  # * * * * *
+
+  schedule:
+    - cron: '0 9 * * 1'      # Every Monday at 9:00 AM UTC
+    # - cron: '0 0 * * *'    # Every day at midnight
+    # - cron: '0 */6 * * *'  # Every 6 hours
+
+  # Also allow manual trigger
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Which task to run'
+        required: true
+        default: 'health-check'
+        type: choice
+        options:
+          - health-check
+          - dependency-update
+          - report
+
+jobs:
+  # Job 1: Health check
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'health-check' || github.event_name == 'schedule'
+
+    steps:
+      - name: Check system health
+        run: |
+          echo "Running health checks..."
+          echo "Date: $(date)"
+          echo "System: OK"
+
+      # Example: Check if a website is up
+      # - name: Check website
+      #   run: |
+      #     response=$(curl -s -o /dev/null -w "%{http_code}" https://your-site.com)
+      #     if [ $response -eq 200 ]; then
+      #       echo "Website is up!"
+      #     else
+      #       echo "Website is down! Status: $response"
+      #       exit 1
+      #     fi
+
+  # Job 2: Check for dependency updates
+  dependency-check:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'dependency-update' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check for outdated packages
+        run: |
+          echo "Checking for outdated packages..."
+          npm outdated || true
+          echo "Check complete!"
+
+      # Example: Auto-create PR for updates
+      # - name: Create PR for updates
+      #   uses: peter-evans/create-pull-request@v5
+      #   with:
+      #     commit-message: 'chore: update dependencies'
+      #     title: 'Automated Dependency Updates'
+      #     body: 'This PR updates outdated dependencies.'
+      #     branch: automated-updates
+
+  # Job 3: Generate weekly report
+  weekly-report:
+    name: Generate Report
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'report' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # Get full history for stats
+
+      - name: Generate report
+        run: |
+          echo "=== Weekly Repository Report ==="
+          echo "Date: $(date)"
+          echo ""
+          echo "Commits this week:"
+          git log --oneline --since="7 days ago" | head -20 || echo "No commits"
+          echo ""
+          echo "Contributors this week:"
+          git shortlog -sn --since="7 days ago" || echo "No contributors"
+          echo ""
+          echo "Files changed:"
+          git diff --stat HEAD~10 HEAD 2>/dev/null | tail -5 || echo "N/A"
+
+      # Example: Send report via Slack
+      # - name: Send to Slack
+      #   uses: slackapi/slack-github-action@v1
+      #   with:
+      #     payload: |
+      #       {"text": "Weekly report generated!"}
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

@@ -1,0 +1,58 @@
+# ===========================================
+# CI with Caching - Speed up your builds 10x
+# ===========================================
+# This workflow demonstrates how to cache dependencies
+# to dramatically speed up your CI runs
+
+name: CI with Cache
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build with Cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # CACHING: Store node_modules between runs
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: cache-npm
+        with:
+          # What to cache
+          path: ~/.npm
+          # Cache key (changes when package-lock.json changes)
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          # Fallback keys
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      # Show cache status
+      - name: Cache status
+        run: |
+          if [ "${{ steps.cache-npm.outputs.cache-hit }}" == "true" ]; then
+            echo "Cache HIT - using cached dependencies"
+          else
+            echo "Cache MISS - will cache after install"
+          fi
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
