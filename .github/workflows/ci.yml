@@ -17,7 +17,7 @@ on:
 jobs:
   # Job 1: Run tests
   test:
-    name: Run Tests
+    name: Run Tests node
     runs-on: ubuntu-latest    # Use a Linux machine
 
     steps:
