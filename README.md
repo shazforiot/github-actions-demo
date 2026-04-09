@@ -2,6 +2,14 @@
 
 A complete demo project for learning GitHub Actions. This repository contains a simple Calculator API with multiple workflow examples.
 
+<div align="center">
+  <h3>GitHub Actions Tutorial: CI/CD Pipeline from Scratch (2026)</h3>
+  <a href="https://www.youtube.com/watch?v=0PbxpIao_EU">
+    <img src="https://img.youtube.com/vi/0PbxpIao_EU/maxresdefault.jpg" alt="Watch the GitHub Actions Tutorial" style="width:100%; max-width:600px;">
+  </a>
+  <p><i>Click the image to watch the CI/CD guide on YouTube</i></p>
+</div>
+
 ## Project Structure
 
 ```
